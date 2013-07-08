@@ -10,7 +10,7 @@
 
 namespace addon {
     class immortal_class {
-        typedef uint index_type;
+        typedef size_t index_type;
     public:
         //------------------- ctors -------------------
         immortal_class(): file_switch_(2) //"invalid" at start

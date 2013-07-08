@@ -17,8 +17,8 @@
 /*
 //checkpoint.read(); //happens in ctor
 
-for(uint j = checkpoint("j", j); j < 5; ++j)
-    for(uint k = 0; k < 10; ++k)
+for(size_t j = checkpoint("j", j); j < 5; ++j)
+    for(size_t k = 0; k < 10; ++k)
         checkpoint.write();
 
 checkpoint("j", j, 5) to set 5 as "0" value
@@ -29,7 +29,7 @@ checkpoint("j", j, 5) to set 5 as "0" value
 
 namespace addon {
     class progress_save_class {
-        typedef uint store_type;
+        typedef size_t store_type;
         
     public:
         progress_save_class(): name_("checkpoint.txt") {

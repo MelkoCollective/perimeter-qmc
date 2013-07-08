@@ -154,7 +154,7 @@ namespace addon
                 count_ = 0;
                 seed_ = global_seed();
                 rng.seed(seed_);
-                for(uint i = 0; i < 100; ++i) {
+                for(size_t i = 0; i < 100; ++i) {
                     rng(); //warming up the rng
                     //fibbonaci has for several seconds the same first number even though the seed changes every second
                 }
