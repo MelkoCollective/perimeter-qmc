@@ -10,7 +10,7 @@
 #include <algorithm>
 
 namespace addon {
-    template<typename T, size_t N, typename Archive>
+    template<typename T, unsigned N, typename Archive>
     void serialize(Archive & ar, boost::multi_array<T, N> & arg) {
         for(T * i = arg.data(); i < arg.data() + arg.num_elements(); ++i)
             ar & *i;

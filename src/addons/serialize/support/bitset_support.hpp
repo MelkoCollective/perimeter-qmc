@@ -12,12 +12,12 @@
 #include "../byte_operation.hpp"
 
 namespace addon {
-    template<size_t N, typename Archive>
+    template<unsigned N, typename Archive>
     void serialize(Archive & ar, std::bitset<N> & arg) {
-        size_t idx = 0;
+        unsigned idx = 0;
         uint64_t in = 0;
         if(Archive::type == archive_enum::input) {
-            for(size_t i = 0; i < N/64; ++i) {
+            for(unsigned i = 0; i < N/64; ++i) {
                 ar & in;
                 for(uint8_t j = 0; j < 64; ++j) {
                     arg[idx] = util::read_bit(in, j);
@@ -31,7 +31,7 @@ namespace addon {
             }
         }
         else if(Archive::type == archive_enum::output) {
-            for(size_t i = 0; i < N/64; ++i) {
+            for(unsigned i = 0; i < N/64; ++i) {
                 for(uint8_t j = 0; j < 64; ++j) {
                     util::write_bit(in, j, arg[idx]);
                     ++idx;

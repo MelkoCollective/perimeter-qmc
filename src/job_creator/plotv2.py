@@ -1,4 +1,4 @@
-#!/usr/bin/python2.6
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 #
 # Author:  Mario S. Könz <mskoenz@gmx.net>
@@ -235,9 +235,9 @@ def main():
         else:
             if p.contains("acc"):
                 text  = ""
-                text += "{0}: {1:.0f}\n".format("H", data[:,-2][labels.index("H")])
-                text += "{0}: {1:.0f}\n".format("L", data[:,-2][labels.index("L")])
-                text += "{0}: {1:.0f}%\n".format("Accept", 100*data[:,-2][labels.index("Accept")])
+                text += "{0}: {1:.0f}\n".format("H", data[:,-2][2])
+                text += "{0}: {1:.0f}\n".format("L", data[:,-2][3])
+                text += "{0}: {1:.0f}%\n".format("Accept", 100*data[:,-2][7])
                 #~ text += "{0}: {1:.0f}\n".format("Seed", data[:,-2][labels.index("Seed")])
                 text += "{0}: {1:.0f}us".format("Update Time", data[:,-2][labels.index("Loop Time[us]")])
                 ax.text(0.37

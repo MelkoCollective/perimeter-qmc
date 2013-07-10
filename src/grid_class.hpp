@@ -34,7 +34,7 @@ namespace perimeter {
     private:
         ///  the array where the sites are stored in
         template<typename U> 
-        using array_type = boost::multi_array<U,2>;
+        using array_type = boost::multi_array<U, 2>;
         
         ///  the used vector_type
         template<typename U> 
@@ -43,7 +43,7 @@ namespace perimeter {
         ///  normally a size_t
         typedef typename vector_type<site_type>::size_type index_type;
         
-        inline grid_class(size_t const H, size_t const L, std::vector<size_t> init = std::vector<size_t>(qmc::n_bra, 0)): 
+        inline grid_class(unsigned const H, unsigned const L, std::vector<unsigned> init = std::vector<unsigned>(qmc::n_bra, 0)): 
                 H_(H)
               , L_(L)
               , grid_(boost::extents[H_][L_])
@@ -102,10 +102,10 @@ namespace perimeter {
             old_partner->neighbor[b]->bond[state] = qmc::invert_bond - b;
         }
         //------------------- omega impl -------------------
-        bool two_bond_update_intern_2(size_t const & i, size_t const & j, state_type const & state, size_t const & tile) {
+        bool two_bond_update_intern_2(unsigned const & i, unsigned const & j, state_type const & state, unsigned const & tile) {
             return grid_[i][j].tile_update(state, tile);
         }
-        bool two_bond_update_intern(size_t const & i, size_t const & j, state_type const & state) {
+        bool two_bond_update_intern(unsigned const & i, unsigned const & j, state_type const & state) {
             //only for square
             assert(qmc::n_bonds == qmc::sqr);
             
@@ -130,7 +130,7 @@ namespace perimeter {
             for(state_type state = qmc::start_state; state < qmc::n_states; ++state) {
                 std::for_each(begin(), end(), 
                     [&](site_type & s) {
-                        for(size_t i = 0; i < tile_type::tile_per_site; ++i) {
+                        for(unsigned i = 0; i < tile_type::tile_per_site; ++i) {
                             CLEAR_BIT(s.tile[state][i].alpha, qmc::clear)
                         }
                     }
@@ -186,34 +186,46 @@ namespace perimeter {
             n_neg_loops_ = 0;
             sign_ = +1;
             int subsign = +1;
+            
+            std::stringstream ss;
+            
             for(state_type bra = qmc::start_state; bra < qmc::n_bra; ++bra)
                 std::for_each(begin(), end(), 
                     [&](site_type & s) {
                         if(s.check[bra] == false) {
                             subsign = +1;
-                            alternator_ = bra;
+                            alternator_ = bra; //must be bra, not ket, see subsign *= -1 below
                             auto old_bra = bra;
+                            site_type::last_dir = 0;
+                            
                             follow_loop_tpl(&s, bra, 
                                 [&](site_type * next){
                                     next->check[bra] = true;
                                     next->loop[bra] = n_loops_;
+                                    assert(alternator_ == bra or alternator_ == qmc::invert_state - bra);
+                                    
                                     if(alternator_ == bra) {
-                                        if(next->bond[alternator_] > qmc::n_bonds / 2)
+                                        if(site_type::last_dir >= qmc::middle) //will never happen at the beginning since last_dir == 0
                                             subsign *= -1;
                                     }
-                                    else
-                                        if(next->bond[alternator_] <= qmc::n_bonds / 2)
+                                    else {
+                                        if(site_type::last_dir < qmc::middle)
                                             subsign *= -1;
-                                        
+                                    }
                                 }
                             );
+                            if(site_type::last_dir >= qmc::middle) //here we need the bra case
+                                subsign *= -1;
+                            
                             assert(old_bra == bra);
                             //~ std::cout << "loop " << n_loops_ << " done " << bra << std::endl;
-                            ++n_loops_;
                             if(subsign == -1) {
                                 ++n_neg_loops_;
                                 sign_ *= -1;
                             }
+                            
+                            ss.clear();
+                            ++n_loops_;
                         }
                     }
                 );
@@ -244,7 +256,7 @@ namespace perimeter {
                 }
             }
         }
-        void print_all(std::vector<state_type> state = std::vector<state_type>(), size_t flags = 1, std::ostream & os = std::cout) const {
+        void print_all(std::vector<state_type> state = std::vector<state_type>(), unsigned flags = 1, std::ostream & os = std::cout) const {
             if(state.size() == 0) {
                 for(state_type bra = qmc::start_state; bra != qmc::n_bra; ++bra) {
                     state.push_back(bra);
@@ -253,7 +265,7 @@ namespace perimeter {
             for(index_type i = 0; i < state.size(); ++i) {
                 state_type bra = state[i];
                 os << "state nr: " << bra << std::endl;
-                const size_t kmax = 3;
+                const unsigned kmax = 3;
                 
                 array_type<std::string> s(boost::extents[kmax * H_][5]);
                 vector_type<std::string> in;
@@ -318,7 +330,7 @@ namespace perimeter {
             ar & grid_;
         }
     private:
-        void init_grid(std::vector<size_t> const init) {
+        void init_grid(std::vector<unsigned> const init) {
             int state = 0;
             
             for(state_type bra = qmc::start_state; bra < qmc::n_bra; ++bra) {
@@ -359,8 +371,8 @@ namespace perimeter {
                 );
             }
             //initialising the neighbor structure
-            for(size_t i = 0; i < H_; ++i) {
-                for(size_t j = 0; j < L_; ++j) {
+            for(unsigned i = 0; i < H_; ++i) {
+                for(unsigned j = 0; j < L_; ++j) {
                     grid_[i][j].neighbor[qmc::up] = &grid_[(i+H_-1)%H_][j];
                     grid_[i][j].neighbor[qmc::down] = &grid_[(i+1)%H_][j];
                     grid_[i][j].neighbor[qmc::me] = &grid_[i][j];
@@ -384,7 +396,7 @@ namespace perimeter {
             for(state_type state = qmc::start_state; state < qmc::n_states; ++state) {
                 std::for_each(begin(), end(), 
                     [&](site_type & s) {
-                        for(size_t i = 0; i < tile_type::tile_per_site; ++i)
+                        for(unsigned i = 0; i < tile_type::tile_per_site; ++i)
                             s.tile[state][i].set_info(&s, state, i);
                     }
                 );
@@ -395,8 +407,8 @@ namespace perimeter {
             return in->loop_partner(alternator_, bra, shift_mode_); //alternator can be changed, as well as bra
         }
     private:
-        size_t const H_; ///<height
-        size_t const L_; ///<length
+        unsigned const H_; ///<height
+        unsigned const L_; ///<length
         array_type<site_type> grid_; ///< the actual grid
         
         loop_type n_loops_;

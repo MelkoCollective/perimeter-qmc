@@ -122,13 +122,16 @@ def print_shift_reagion():
         print("")
     print("")
 
-def write_shift_reagion(dir_name):
-    ofs = open(dir_name, "w")
+def write_shift_reagion(dir_name, mod = "w"):
+    ofs = open(dir_name, mod)
     for i in range(H):
         for j in range(L):
              ofs.write(str([0, 1][shift_region[i][j]>0]))
              ofs.write(" ")
         ofs.write("\n")
+    if mod == "w":
+        ofs.write("\n")
+        
 
 def add_existent(num, cond):
     global shift_region, H, L
@@ -142,8 +145,8 @@ def grow_step(mod = 1, maxcount = 10):
     global shift_region, H, L, old_i, old_j
     #~ directions = ["right", "left", "up", "down"]
     #~ directions = ["left", "right"]
-    directions = ["right"]
     directions = ["up"]
+    directions = ["right"]
     
     add = 100;
 
@@ -285,7 +288,6 @@ def grow(g):
         g = int(round(g))
         old_i = 0
         old_j = 0
-        print(g)
         for i in range(g, int(round(1/p["spacing"]))):
             grow_step(-1, s[i])
     else:

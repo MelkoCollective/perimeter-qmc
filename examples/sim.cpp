@@ -14,17 +14,12 @@ int main(int argc, char* argv[])
     addon::global_seed.set(0);
     
     auto & p = addon::parameter;
-    p["init0"] = 0;
-    p["init1"] = 0;
-    p["f"] = 1;
-    p["g"] = 0;
-
+    
     p["mult"] = 1;
 
     p["H"] = 16;
     p["L"] = 16;
     p["shift"] = "shift.txt";
-    p["spacing"] = 1;
     p["res"] = "results.txt";
     p["timer_dest"] = 1;
 

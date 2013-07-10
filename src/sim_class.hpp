@@ -22,8 +22,6 @@
 #include <assert.h>
 #include <cmath>
 
-//~ #define SIMUVIZ_FRAMES 50
-
 //perimeter is documented in grid_class.hpp
 namespace perimeter {
     class sim_class {
@@ -34,7 +32,7 @@ namespace perimeter {
         sim_class(map_type const & param):    param_(param)
                                             , H_(param_["H"])
                                             , L_(param_["L"])
-                                            , grid_(H_, L_, std::vector<size_t>(2, qmc::n_bonds == qmc::hex ? 2 : 0))
+                                            , grid_(H_, L_, std::vector<unsigned>(2, qmc::n_bonds == qmc::hex ? 2 : 0))
                                             , rngS_()
                                             , rngH_(H_)
                                             , rngL_(L_)
@@ -47,25 +45,28 @@ namespace perimeter {
             //~ sr_.write(param_["shift"]);
             grid_.set_shift_region(sr_);
             
-            for(size_t i = 0; i < H_; i += 4) {
-                for(size_t j = 0; j < L_; j+= 4) {
-                    //~ two_bond_update(i+3, j+1, 0, 1);
-                    //~ two_bond_update(i+3, j+3, 0, 1);
-                    //~ two_bond_update(i+3, j+3, 1, 1);
-                    //~ two_bond_update(i+3, j+2, 0, 1);
-                    //~ two_bond_update(i+2, j+1, 1, 1);
-                    //~ grid_(i+2, j+1).spin[0] = qmc::invert_spin - grid_(i+2, j+1).spin[0];
-                    //~ grid_(i+1, j+1).spin[0] = qmc::invert_spin - grid_(i+1, j+1).spin[0];
-                    //~ grid_.clear_tile_spin();
-                    //~ grid_.copy_to_ket();
-                    //~ two_bond_update(i+2, j+1, 1, 0);
-                    //~ grid_(i+2, j+2).spin[0] = qmc::invert_spin - grid_(i+2, j+2).spin[0];
-                    //~ grid_(i+1, j+1).spin[0] = qmc::invert_spin - grid_(i+1, j+1).spin[0];
-                    //~ grid_.clear_tile_spin();
-                    //~ grid_.copy_to_ket();
-                    //~ two_bond_update(i+1, j+1, 0, 2);
-                }
-            }
+            //~ state_type state = 0;
+            //~ if(qmc::n_bonds == qmc::tri) {
+                //~ for(unsigned i = 0; i < H_; i += 4) {
+                    //~ for(unsigned j = 0; j < L_; j+= 4) {
+                        //~ two_bond_update(i+3, j+1, state, 1);
+                        //~ two_bond_update(i+3, j+3, state, 1);
+                        //~ two_bond_update(i+3, j+3, qmc::invert_state - state, 1);
+                        //~ two_bond_update(i+3, j+2, state, 1);
+                        //~ two_bond_update(i+2, j+1, qmc::invert_state - state, 1);
+                        //~ grid_(i+2, j+1).spin[0] = qmc::invert_spin - grid_(i+2, j+1).spin[0];
+                        //~ grid_(i+1, j+1).spin[0] = qmc::invert_spin - grid_(i+1, j+1).spin[0];
+                        //~ grid_.clear_tile_spin();
+                        //~ grid_.copy_to_ket();
+                        //~ two_bond_update(i+2, j+1, qmc::invert_state - state, 0);
+                        //~ grid_(i+2, j+2).spin[0] = qmc::invert_spin - grid_(i+2, j+2).spin[0];
+                        //~ grid_(i+1, j+1).spin[0] = qmc::invert_spin - grid_(i+1, j+1).spin[0];
+                        //~ grid_.clear_tile_spin();
+                        //~ grid_.copy_to_ket();
+                        //~ two_bond_update(i+1, j+1, state, 2);
+                    //~ }
+                //~ }
+            //~ }
             
             grid_.clear_tile_spin();
             grid_.copy_to_ket();
@@ -125,7 +126,7 @@ namespace perimeter {
             grid_.clear_tile_spin();
             
             for(state_type state = qmc::start_state; state < qmc::n_states; ++state)
-                for(size_t i = 0; i < H_ * L_; ++i) {
+                for(unsigned i = 0; i < H_ * L_; ++i) {
                     bool ok = two_bond_update(rngH_(), rngL_(), state);
                     accept_ << ok;
                     #ifdef SIMUVIZ_FRAMES
@@ -140,17 +141,20 @@ namespace perimeter {
         }
         
         void measure() {
-            int sign = grid_.sign();
+            //~ int sign = grid_.sign();
             double loops = grid_.n_loops();
-            double neg_loops = grid_.n_neg_loops();
+            //~ double neg_loops = grid_.n_neg_loops();
             data_["loops"] << loops;
             data_["overlap"] << pow(2.0, loops - 2*H_*L_* .5 );
             grid_.set_shift_mode(qmc::ket_swap);
             grid_.init_loops();
-            //~ if(sign != grid_.sign() and grid_.n_loops() > 13) {
+            
+            //~ if(sign != grid_.sign() and grid_.n_loops() > 12) {
+                //~ std::cout << "\033[1;36m" << "---checkpoint 2---" << "\033[0m" << std::endl;
                 //~ grid_.print_all({0, 1}, 7);
                 //~ DEBUG_VAR(sign)
                 //~ DEBUG_VAR(grid_.sign())
+                //~ std::cin.get();
             //~ }
             
             //~ grid_.eco_init_loops();
@@ -159,6 +163,7 @@ namespace perimeter {
             data_["swap_loops"] << grid_.n_loops();
             data_["swap_overlap"] << pow(2.0, int(grid_.n_loops()) - loops);
             data_["mean_for_error"] << pow(2.0, int(grid_.n_loops()) - loops);
+            
             grid_.set_shift_mode(qmc::ket_preswap);
         }
         void write_bins(std::vector<double> & bins, std::string const & mean_file) {
@@ -209,14 +214,14 @@ namespace perimeter {
                 else {
                     //------------------- term -------------------
                     std::cout << std::endl;
-                    for(size_t i = 0; i < param_["term"]; ++i) {
+                    for(unsigned i = 0; i < param_["term"]; ++i) {
                         update();
                         timer.progress(i, param_["timer_dest"]);
                     }
                 }
                 //------------------- sim -------------------
                 std::ofstream ofs;
-                for(size_t i = addon::immortal.get_index(0); i < param_["sim"]; ++i) {
+                for(unsigned i = addon::immortal.get_index(0); i < param_["sim"]; ++i) {
                     
                     update();
                     measure();
@@ -289,8 +294,8 @@ namespace perimeter {
             ofs << std::endl << std::endl;
             
             if(qmc::n_bonds == qmc::tri) {
-                for(size_t i = 0; i < H_; ++i) {
-                    for(size_t j = 0; j < L_; ++j) {
+                for(unsigned i = 0; i < H_; ++i) {
+                    for(unsigned j = 0; j < L_; ++j) {
                         ofs << grid_(i, j).spin[0] << " ";
                         ofs << get_bond(grid_(i, j), qmc::up, spin_up) << " ";
                         ofs << get_bond(grid_(i, j), qmc::diag_up, spin_up) << " ";
@@ -299,8 +304,8 @@ namespace perimeter {
                     ofs << std::endl;
                 }
             } else if(qmc::n_bonds == qmc::hex) {
-                for(size_t i = 0; i < H_; ++i) {
-                    for(size_t j = 0; j < L_; j+=2) {
+                for(unsigned i = 0; i < H_; ++i) {
+                    for(unsigned j = 0; j < L_; j+=2) {
                         if(i % 2 == 0) {
                             ofs << grid_(i, j).spin[0] << " 2 2 " 
                                << get_bond(grid_(i, j), qmc::up, spin_up) << " 2 2 2 2  " 
@@ -338,8 +343,8 @@ namespace perimeter {
         }
     //~ private:
         map_type param_;
-        const size_t H_;
-        const size_t L_;
+        const unsigned H_;
+        const unsigned L_;
         grid_class grid_;
         addon::random_class<double, addon::mersenne> rngS_;
         addon::random_class<int, addon::mersenne> rngH_;

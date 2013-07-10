@@ -28,7 +28,7 @@ namespace perimeter {
         double sum = accumulate(data.begin(), data.end(), 0.0);
         double N_1 = data.size() - 1;
         
-        for(size_t i = 0; i < data.size(); ++i)
+        for(unsigned i = 0; i < data.size(); ++i)
             fjack.push_back(-std::log((sum - data[i]) / N_1));
         
         sum = accumulate(fjack.begin(), fjack.end(), 0.0);

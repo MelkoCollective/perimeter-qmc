@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     }
     char c = 0;
     
-    for(size_t i = addon::immortal.get_index(); i < 100000; ++i) {
+    for(unsigned i = addon::immortal.get_index(); i < 100000; ++i) {
         std::cin >> c;
         --data;
         std::cout << i << "  " << data << std::endl;

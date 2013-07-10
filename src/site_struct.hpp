@@ -64,6 +64,7 @@ namespace perimeter {
             , n_bonds
             , hori
             , none
+            , middle = left
             , invert_bond = n_bonds - 1 + start_bond
             , tri = 6 + start_bond
             , sqr = 4 + start_bond
@@ -82,6 +83,7 @@ namespace perimeter {
             , diag_up
             , hori
             , none
+            , middle = left
             , invert_bond = n_bonds - 1 + start_bond
             , tri = 6 + start_bond
             , sqr = 4 + start_bond
@@ -100,6 +102,7 @@ namespace perimeter {
             , left
             , diag_up
             , none
+            , middle = hori
             , invert_bond = n_bonds - 1 + start_bond
             , tri = 6 + start_bond
             , sqr = 4 + start_bond
@@ -137,11 +140,11 @@ namespace perimeter {
     }
 
     typedef int spin_type; ///< the spin type, for now just an int
-    typedef size_t loop_type; ///< used for the loop label
-    typedef size_t bond_type; ///< based on bond_enum, but since the enum is not usable as an index, its an size_t
+    typedef unsigned loop_type; ///< used for the loop label
+    typedef unsigned bond_type; ///< based on bond_enum, but since the enum is not usable as an index, its an size_t
     typedef std::bitset<qmc::n_states> check_type; ///< used for the check variable. a bool would also work, but an size_t8_t needs the same space and provides more option
-    typedef size_t state_type; ///< names the type of the state. again, casting from and to enum all the time would be cumbersome
-    typedef size_t shift_type;
+    typedef unsigned state_type; ///< names the type of the state. again, casting from and to enum all the time would be cumbersome
+    typedef unsigned shift_type;
     
     template<typename site_type, int T>
     struct tile_struct {
@@ -166,13 +169,13 @@ namespace perimeter {
         tile_struct(): alpha(0) {
         }
         //------------------- constants -------------------
-        static size_t const tile_per_site = 1;
-        static size_t const n_patterns = 2;
+        static unsigned const tile_per_site = 1;
+        static unsigned const n_patterns = 2;
         
         static std::bitset<6> const patterns[2];
         
         void check_bad_bond() {
-            for(size_t i = 0; i < n_patterns; ++i) {
+            for(unsigned i = 0; i < n_patterns; ++i) {
                 if((*this) == patterns[i]) {
                     CLEAR_BIT(alpha, qmc::bad_bond)
                     return;
@@ -258,7 +261,7 @@ namespace perimeter {
             return false;
         }
         
-        void set_info(site_type * const _site, state_type const & _state, size_t const & _idx) {
+        void set_info(site_type * const _site, state_type const & _state, unsigned const & _idx) {
             assert(alpha == 0);
             
             state_type bra = (_state < qmc::n_bra ? _state : qmc::invert_state - _state);
@@ -311,12 +314,12 @@ namespace perimeter {
         tile_struct(): alpha(0) {
         }
         //------------------- constants -------------------
-        static size_t const tile_per_site = 3;
-        static size_t const n_patterns = 2;
+        static unsigned const tile_per_site = 3;
+        static unsigned const n_patterns = 2;
         static std::bitset<qmc::n_bonds> const patterns[3][3];
         
         void check_bad_bond() {
-            for(size_t i = 0; i < n_patterns; ++i) {
+            for(unsigned i = 0; i < n_patterns; ++i) {
                 if((*this) == patterns[idx][i]) {
                     CLEAR_BIT(alpha, qmc::bad_bond)
                     return;
@@ -407,7 +410,7 @@ namespace perimeter {
             return false;
         }
         
-        void set_info(site_type * const _site, state_type const & _state, size_t const & _idx) {
+        void set_info(site_type * const _site, state_type const & _state, unsigned const & _idx) {
             state = _state;
             site = _site;
             idx = _idx;
@@ -455,9 +458,9 @@ namespace perimeter {
         alpha_type alpha;
         site_type * site;
         state_type state;
-        size_t idx;
-        size_t ip1;
-        size_t ip2;
+        unsigned idx;
+        unsigned ip1;
+        unsigned ip2;
         
         bond_type base0_;
         bond_type base1_;
@@ -491,12 +494,12 @@ namespace perimeter {
         tile_struct(): alpha(0) {
         }
         //------------------- constants -------------------
-        static size_t const tile_per_site = 1;
-        static size_t const n_patterns = 2;
+        static unsigned const tile_per_site = 1;
+        static unsigned const n_patterns = 2;
         static std::bitset<qmc::n_bonds> const patterns[2];
         
         void check_bad_bond() {
-            for(size_t i = 0; i < n_patterns; ++i) {
+            for(unsigned i = 0; i < n_patterns; ++i) {
                 if((*this) == patterns[i]) {
                     CLEAR_BIT(alpha, qmc::bad_bond)
                     return;
@@ -554,7 +557,7 @@ namespace perimeter {
             return false;
         }
         
-        void set_info(site_type * const _site, state_type const & _state, size_t const & _idx) {
+        void set_info(site_type * const _site, state_type const & _state, unsigned const & _idx) {
             //sqr doesn't need _idx since only one tile per site
             state = _state;
             site = _site;
@@ -607,6 +610,7 @@ namespace perimeter {
         site_struct * loop_partner(bond_type & state, bond_type & bra, shift_type const & shift_mode) {
             if(shift_mode == qmc::no_shift) {
                 //~ std::cout << "state " << state << "/" << "bond[state] = " << bond[state] << "  n = " << neighbor[bond[state]] << "  states: " << qmc::n_states << std::endl;
+                last_dir = bond[state];
                 return neighbor[bond[state]];
             }
             
@@ -618,7 +622,7 @@ namespace perimeter {
                 
                 
                 site_struct * partner = neighbor[bond[new_ket]];
-                
+                last_dir = bond[new_ket];
                 if(partner->shift_region[shift_mode] != shift_region[shift_mode]) {
                     bra += qmc::n_bra - (partner->shift_region[shift_mode] - shift_region[shift_mode]);
                     
@@ -635,6 +639,7 @@ namespace perimeter {
             }
             else {
                 //~ std::cout << "  bra: " << bra << " loop: " << loop[state] << " " << std::endl;
+                last_dir = bond[state];
                 return neighbor[bond[state]];
             }
         }
@@ -659,7 +664,7 @@ namespace perimeter {
             }
         }
         ///  \brief the fancy print-function used by the grid_class
-        std::vector<std::string> const string_print(size_t const & L, state_type const & s1, size_t const & what) const {
+        std::vector<std::string> const string_print(unsigned const & L, state_type const & s1, unsigned const & what) const {
             std::vector<std::string> res;
             std::stringstream os;
             
@@ -716,7 +721,7 @@ namespace perimeter {
             
         }
         
-        bool tile_update(state_type const & state, size_t const & t) {
+        bool tile_update(state_type const & state, unsigned const & t) {
             return tile[state][t].tile_update();
         }
         template<typename Archive>
@@ -740,12 +745,15 @@ namespace perimeter {
         check_type check; ///< shared by all states
         
         shift_type shift_region[qmc::n_shifts];
+        
         static shift_type shift_mode_print;
-        static size_t print_alternate;
+        static unsigned print_alternate;
+        static bond_type last_dir;
+        
         tile_type tile[qmc::n_states][tile_type::tile_per_site];
     private:
         ///  \brief plots the bonds in differente colors, depending how the config is
-        std::string print_bond(qmc::bond_enum b, std::string go, std::string no, state_type const & s1, size_t const & what) const {
+        std::string print_bond(qmc::bond_enum b, std::string go, std::string no, state_type const & s1, unsigned const & what) const {
             std::stringstream res;
             state_type s2 = qmc::invert_state - s1;
             
@@ -790,7 +798,7 @@ namespace perimeter {
             return res.str();
         }
         
-        std::string print_spin(state_type const & s1, size_t const & what) const {
+        std::string print_spin(state_type const & s1, unsigned const & what) const {
             std::stringstream res;
             
             state_type s2 = qmc::invert_state - s1;
@@ -817,7 +825,8 @@ namespace perimeter {
     };
     
     shift_type site_struct::shift_mode_print = qmc::no_shift;
-    size_t site_struct::print_alternate = 1;
+    unsigned site_struct::print_alternate = 1;
+    bond_type site_struct::last_dir = 1;
     
     std::ostream & operator<<(std::ostream & os, site_struct const & site) {
         site.print(qmc::start_state, os);

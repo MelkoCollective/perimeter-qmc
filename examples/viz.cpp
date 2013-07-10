@@ -2,6 +2,8 @@
 // Date:    13.06.2013 12:06:28 EDT
 // File:    vis.cpp
 
+#define SIMUVIZ_FRAMES 50
+
 #include <iostream>
 #include <progress_save_msk.hpp>
 #include <bash_parameter3_msk.hpp>
@@ -42,7 +44,7 @@ int main(int argc, char* argv[])
     
     remove((prog_dir + "/../../../SimuViz/Example/viz.txt").c_str());
     
-    for(size_t i = 0; i < 100; ++i) {
+    for(unsigned i = 0; i < 100; ++i) {
         sim.update();
     }
         

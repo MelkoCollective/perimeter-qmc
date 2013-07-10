@@ -12,11 +12,11 @@
 namespace addon {
     template<typename Archive>
     void serialize(Archive & ar, std::string & arg) {
-        size_t size = arg.size();
+        unsigned size = arg.size();
         ar & size;
         if(Archive::type == archive_enum::input)
             arg.resize(size);
-        for(size_t i = 0; i < size; ++i) {
+        for(unsigned i = 0; i < size; ++i) {
             ar & arg[i];
         }
     }

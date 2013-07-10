@@ -113,7 +113,7 @@ namespace addon {
     }//end namespace dest
     
     namespace detail {
-        size_t active_timer_ = 0;
+        unsigned active_timer_ = 0;
     }//end namespace detail
     ///  \brief the improved timer class
     ///  
@@ -226,7 +226,7 @@ namespace addon {
             std::stringstream ss;
             double e = elapsed();
             double p2(double(i - first_i_) / (work_ - first_i_));
-            size_t time_pred((1-p2)/p2*e);
+            unsigned time_pred((1-p2)/p2*e);
             ss << std::setfill('0') << std::setw(2) << time_pred/3600 << ":"
                                     << std::setw(2) << (time_pred/60)%60 << ":"
                                     << std::setw(2) << time_pred%60 << std::setfill(' ');
@@ -251,7 +251,7 @@ namespace addon {
         ///  behavior using an power 2 modulo operation (binary &) at the start of the function. The modulo-factor
         ///  is changed dynamically, s.t. the print only happens every 1-2s. The overhead is minimal since it's only
         ///  a binary & operation most of the time. (takes 20% of the time of a single mersenne-rng() call)
-        void progress(uint64_t const & i, size_t const & mode = dest::console) {
+        void progress(uint64_t const & i, unsigned const & mode = dest::console) {
             if((i&(mod_-1)) == 0)
             {
                 if(elapsed() - last_print_ > 1) {
@@ -270,7 +270,7 @@ namespace addon {
                             first_i_ = i;
                         
                         
-                        for(size_t i = 0; i < timer_id_; ++i) {
+                        for(unsigned i = 0; i < timer_id_; ++i) {
                             std::cout << "        ";
                         }
                         
@@ -499,7 +499,7 @@ namespace addon {
         uint64_t mod_;
         
         double loop_time_;
-        size_t timer_id_;
+        unsigned timer_id_;
     };
 }//end namespace addon
 #endif //__TIMER2_MSK_HEADER

@@ -13,7 +13,7 @@
 namespace addon {
     template<typename Key, typename Val, typename Archive>
     void serialize(Archive & ar, std::map<Key, Val> & arg) {
-        size_t size = arg.size();
+        unsigned size = arg.size();
         ar & size;
         if(Archive::type == archive_enum::output) {
             std::for_each(arg.begin(), arg.end(), 
@@ -26,7 +26,7 @@ namespace addon {
             arg.clear();
             Key key;
             Val val;
-            for(size_t i = 0; i < size; ++i) {
+            for(unsigned i = 0; i < size; ++i) {
                 ar & key;
                 ar & val;
                 arg[key] = val;

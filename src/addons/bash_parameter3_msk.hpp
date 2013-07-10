@@ -248,7 +248,7 @@ namespace addon
                 argf.push_back(argv[i]);
             }
             
-            for(size_t i = 0; i < argf.size(); ++i) {
+            for(unsigned i = 0; i < argf.size(); ++i) {
                 if(argf[i][0] == '-') {
                     if(i + 1 < argf.size() and argf[i+1][0] != '-') {
                         #define convert_op(T)\
