@@ -32,11 +32,11 @@ configure_file(
 
 #=================== custom stuff ===================
 #increase version number
-add_custom_target(
-            build_nr ALL
-            COMMAND python ${SRC}/version/incr_build.py
-            DEPENDS "${SRC}/version/build.hpp"
-            )
+#~ add_custom_target(
+            #~ build_nr ALL
+            #~ COMMAND python ${SRC}/version/incr_build.py
+            #~ DEPENDS "${SRC}/version/build.hpp"
+            #~ )
 
 add_custom_target(
             doc ALL

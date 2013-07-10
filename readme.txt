@@ -20,3 +20,10 @@ make sim
 If it compiled, your system has the necessary tools
 
 good job!
+
+To get the documentation (you probably need doxigen):
+
+make doc
+cd ../doc
+
+Open one of the html files with your favorite browser
