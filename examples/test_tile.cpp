@@ -29,6 +29,9 @@ int main(int argc, char* argv[])
     
     addon::parameter.set("term", addon::parameter["mult"] * 100000);
     addon::parameter.set("sim", addon::parameter["mult"] * 1000000);
+    addon::parameter["shift"] = std::string(addon::parameter["prog_dir"]) + std::string(addon::parameter["shift"]);
+    std::cout << addon::parameter["shift"] << std::endl;
+    
     
     sim_class sim(addon::parameter.get());
     grid_class & g(sim.grid());
@@ -50,7 +53,6 @@ int main(int argc, char* argv[])
         w-='0';
         t-='0';
         if(t == 'r'-'0')
-            //~ sim.two_bond_update(sim.rngH_(), sim.rngL_(), 1);
             sim.two_bond_update(i, j, s, w);
         else if(t == 'l'-'0')
             g.init_loops();

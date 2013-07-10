@@ -1,4 +1,0 @@
-#define MAJOR @MAJOR@
-#define MINOR @MINOR@
-#define SOURCE_PATH "@SOURCE_PATH@"
-#define BINARY_PATH "@BINARY_PATH@"

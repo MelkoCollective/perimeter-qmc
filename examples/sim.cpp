@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     
     std::string prog_dir = p["prog_dir"];
     
-    remove(std::string(prog_dir + "/" + std::string(p["res"])).c_str());
+    remove(std::string(prog_dir + std::string(p["res"])).c_str());
     
     p["shift"] = prog_dir + std::string(p["shift"]);
     p["res"] = prog_dir + std::string(p["res"]);

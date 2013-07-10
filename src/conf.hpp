@@ -5,7 +5,7 @@
 #ifndef __CONF_HEADER
 #define __CONF_HEADER
 
-#define GRID_TYPE 4
+#define GRID_TYPE 3
 #define S_ORDER 2
 
 #endif //__CONF_HEADER

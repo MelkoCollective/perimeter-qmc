@@ -18,7 +18,7 @@ parameter["sq"]    = "-r 4h --mpp 500m"
 #sharcnet specific commands, see/change lauch_programm
 parameter["files"] = ["../../build/examples/sim"]
 #where the executable is located
-parameter["cmake"] = "-DUSE_S:STRING=2 -DUSE_GRID:STRING=4"
+parameter["cmake"] = "-DUSE_S:STRING=2 -DUSE_GRID:STRING=3"
 #USE_S is the renyi index and USE_GRID is the grid type (3=tri, 4=sqr, 6=hex)
 #if you change this you need to recompile
 

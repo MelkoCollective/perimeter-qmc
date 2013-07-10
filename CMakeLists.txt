@@ -3,9 +3,9 @@ project(MasterThesis)
 
 #=================== compiler & flags ===================
 SET(CMAKE_CXX_COMPILER "g++-4.7")
-#~ SET(CMAKE_CXX_COMPILER "cc")
+#~ SET(CMAKE_CXX_COMPILER "cc") #sharcnet
 SET(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -pedantic")
-#~ SET(CMAKE_EXE_LINKER_FLAGS "-pg")
+#~ SET(CMAKE_EXE_LINKER_FLAGS "-pg") #for profiling
 
 #=================== set paths ===================
 set(SRC "${PROJECT_SOURCE_DIR}/src")
@@ -13,11 +13,10 @@ set(DOCU "${PROJECT_SOURCE_DIR}/doc")
 set(TEST "${PROJECT_SOURCE_DIR}/test")
 set(EXAMPLE "${PROJECT_SOURCE_DIR}/test")
 
-#~ FIND_PACKAGE(Boost 1.50 COMPONENTS timer REQUIRED)
 
 set(LIB demo_lib)
 
-set(MAJOR 0)
+set(MAJOR 1)
 set(MINOR 1)
 #=================== set options ===================
 OPTION(BUILD_TEST "build all the tests" ON)
@@ -31,13 +30,6 @@ configure_file(
 )
 
 #=================== custom stuff ===================
-#increase version number
-#~ add_custom_target(
-            #~ build_nr ALL
-            #~ COMMAND python ${SRC}/version/incr_build.py
-            #~ DEPENDS "${SRC}/version/build.hpp"
-            #~ )
-
 add_custom_target(
             doc ALL
             COMMAND doxygen "${SRC}/Doxyfile"
@@ -72,10 +64,12 @@ include_directories("${SRC}/version")
 add_subdirectory("src")
 
 if(BUILD_TEST)
-    enable_testing()
-    #~ add_subdirectory("test")
+    #~ enable_testing()
+    add_subdirectory("test")
 endif(BUILD_TEST)
 
 if(BUILD_EXAMPLE)
     add_subdirectory("examples")
 endif(BUILD_EXAMPLE)
+
+
