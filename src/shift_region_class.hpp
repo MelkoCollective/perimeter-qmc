@@ -45,7 +45,9 @@ namespace perimeter {
                 N_ = stage1_.size();
             }
             else {
-                std::cout << "file-fail in shift_region_class constructor" << std::endl;
+                std::stringstream ss;
+                ss << "file: " << filename << " not found" << std::endl;
+                throw std::runtime_error(ss.str());
             }
             convert_1_to_2();
         }

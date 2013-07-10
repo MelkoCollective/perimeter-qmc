@@ -24,10 +24,6 @@ OPTION(BUILD_EXAMPLE "build all the examples" ON)
 SET(USE_GRID 3 CACHE STRING "choose the grid type (3=tri, 4=sqr, 6=hex)")
 SET(USE_S 2 CACHE STRING "choose the order of the Renyi entropy")
 
-configure_file(
-"${SRC}/conf.hpp.in"
-"${SRC}/conf.hpp"
-)
 
 #=================== custom stuff ===================
 add_custom_target(
@@ -52,9 +48,9 @@ endmacro(add_default_test)
 
 #=================== write config files ===================
 configure_file(
-    "${SRC}/version/config.hpp.in"
-    "${SRC}/version/config.hpp"
-    )
+"${SRC}/conf.hpp.in"
+"${SRC}/conf.hpp"
+)
 #=================== include directories ===================
 include_directories("${SRC}")
 include_directories("${SRC}/addons")

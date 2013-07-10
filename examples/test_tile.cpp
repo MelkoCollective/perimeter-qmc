@@ -32,54 +32,42 @@ int main(int argc, char* argv[])
     addon::parameter["shift"] = std::string(addon::parameter["prog_dir"]) + std::string(addon::parameter["shift"]);
     std::cout << addon::parameter["shift"] << std::endl;
     
-    
     sim_class sim(addon::parameter.get());
     grid_class & g(sim.grid());
-    //~ g(1, 0).spin[0] = 0;
-    //~ g(1, 1).spin[0] = 1;
     
-    //~ std::cout << g(1, 1).tile_update(0, 1) << std::endl;
-    //~ std::cout << g(1, 3).tile_update(0, 1) << std::endl;
-    //~ std::cout << g(1, 0).tile_update(0, 1) << std::endl;
-    //~ std::cout << g(1, 2).tile_update(0, 1) << std::endl;
+    char i, j, s, w;
+    char t = 'a';
     
-    char i, j, s, t, w;
+    g.print({0});
+    g.print_all({0}, addon::parameter["f"]);    
     
-    while(i!=10) {
+    std::cout << "type: x y state tile cmd" << std::endl;
+    std::cout << "possible cmd are: r(two_bond_update), s(invert spin), l(initialize loops), c(update tiles/copy to ket), u(do an update like in a sim), q(quit)" << std::endl;
+    
+    while(t != 'q') {
         cin >> i >> j >> s >> w >> t;
         i-='0';
         j-='0';
         s-='0';
         w-='0';
-        t-='0';
-        if(t == 'r'-'0')
+        if(t == 'r')
             sim.two_bond_update(i, j, s, w);
-        else if(t == 'l'-'0')
+        else if(t == 'l')
             g.init_loops();
-        else if(t == 'c'-'0') {
+        else if(t == 'c') {
             g.copy_to_ket();
             g.init_loops();
             g.clear_tile_spin();
         }
-        else if(t == 's'-'0')
-            g(i, j).spin[s] = qmc::invert_spin - g(i, j).spin[s];
-        else if(t == 'u'-'0')
+        else if(t == 's')
+            g(i, j).spin[int(s)] = qmc::invert_spin - g(i, j).spin[int(s)];
+        else if(t == 'u')
             sim.update();
-        //~ else
-            //~ g(i, j).tile_update(0, 0);
-            //~ g(i, j).tile_update(0, t);
         
         g.print({0});
         g.print_all({0}, addon::parameter["f"]);
     }
-    
-    //~ g(2, 3).spin[0] = 0;
-    //~ g(3, 3).spin[0] = 1;
-    
-    //~ g.init_loops();
-    
-    g.print({0});
-    g.print_all({0}, addon::parameter["f"]);    
+        
     
     return 0;
 }
