@@ -8,7 +8,7 @@
 //~ #include <progress_save_msk.hpp>
 
 using namespace std;
-using namespace perimeter;
+using namespace perimeter_rvb;
 
 int main(int argc, char* argv[])
 {

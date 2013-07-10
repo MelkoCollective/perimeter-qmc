@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <vector>
 
-namespace perimeter {
+namespace perimeter_rvb {
     std::pair<double, double> jackknife(std::string name) {
         std::vector<double> data;
         std::vector<double> fjack;

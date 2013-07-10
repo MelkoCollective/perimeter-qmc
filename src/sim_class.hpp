@@ -23,7 +23,7 @@
 #include <cmath>
 
 //perimeter is documented in grid_class.hpp
-namespace perimeter {
+namespace perimeter_rvb {
     class sim_class {
         typedef typename grid_class::index_type index_type;
         typedef typename grid_class::site_type site_type;
@@ -75,11 +75,11 @@ namespace perimeter {
         bool two_bond_update(index_type i, index_type j, state_type state, int t = -1) {
             if(qmc::n_bonds == qmc::tri)
                 if(t == -1)
-                    return grid_.two_bond_update_intern_2(i, j, state, int(rngS_() * 3));
+                    return grid_.two_bond_update_intern(i, j, state, int(rngS_() * 3));
                 else
-                    return grid_.two_bond_update_intern_2(i, j, state, t);
+                    return grid_.two_bond_update_intern(i, j, state, t);
             else
-                return grid_.two_bond_update_intern_2(i, j, state, 0);
+                return grid_.two_bond_update_intern(i, j, state, 0);
         }
         
         void spin_update() {

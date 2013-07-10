@@ -22,7 +22,7 @@
 ///  \brief where all the physics happens
 ///  
 ///  
-namespace perimeter {
+namespace perimeter_rvb {
     ///  \brief grid class with site_struct as sites
     ///
     ///  via the enums in site_struct.hpp can be specified, what grid-type is chosen 
@@ -91,41 +91,11 @@ namespace perimeter {
                 next = next_in_loop(next, bra);
             } while(next != start or bra != old_bra);
         }
-        void two_bond_flip(site_type * const target, site_type * const old_partner, bond_type const & b, state_type const & state) {
-            //target node shows in the dircetion of the neighbor with the same orientation
-            target->bond[state] = b;
-            //old partner does the same
-            old_partner->bond[state] = b;
-            //the new partner of the target bond shows in the targets direction
-            target->neighbor[b]->bond[state] = qmc::invert_bond - b;
-            //old partner of the new partner does the same
-            old_partner->neighbor[b]->bond[state] = qmc::invert_bond - b;
-        }
         //------------------- omega impl -------------------
-        bool two_bond_update_intern_2(unsigned const & i, unsigned const & j, state_type const & state, unsigned const & tile) {
+        bool two_bond_update_intern(unsigned const & i, unsigned const & j, state_type const & state, unsigned const & tile) {
             return grid_[i][j].tile_update(state, tile);
         }
-        bool two_bond_update_intern(unsigned const & i, unsigned const & j, state_type const & state) {
-            //only for square
-            assert(qmc::n_bonds == qmc::sqr);
-            
-            site_type & target = grid_[i][j];
-            
-            state_type bra = state;
-            if(bra >= qmc::n_bra) //it's a ket
-                bra = qmc::invert_state - state; //now it's a bra
-            if(target.bond[state] < 3) { // it's perhaps updateable
-                for(bond_type b = qmc::start_bond; b < 3; ++b) {
-                    if(target.bond[state] == target.neighbor[b]->bond[state] and target.spin[state] == qmc::invert_spin - target.neighbor[b]->spin[state]) {
-                        two_bond_flip(&target, target.partner(state), b, state);
-                        //~ res = true;
-                        //~ break;
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
+        
         void clear_tile_spin() {
             for(state_type state = qmc::start_state; state < qmc::n_states; ++state) {
                 std::for_each(begin(), end(), 
@@ -419,5 +389,5 @@ namespace perimeter {
     private:
         shift_type shift_mode_;
     };
-}//end namespace perimeter
+}//end namespace perimeter_rvb
 #endif //__GRID_CLASS_HEADER

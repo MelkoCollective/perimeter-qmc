@@ -39,8 +39,8 @@ int main(int argc, char* argv[]) {
     addon::fserial_class backup1("backup_1.bin");
     addon::fserial_class backup2("backup_2.bin");
     
-    perimeter::sim_class sim(p.get());
-    perimeter::sim_class sim2(p.get());
+    perimeter_rvb::sim_class sim(p.get());
+    perimeter_rvb::sim_class sim2(p.get());
     
     sim.update();
     sim.measure();

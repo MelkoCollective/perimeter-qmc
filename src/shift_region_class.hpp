@@ -11,7 +11,7 @@
 
 #include <site_struct.hpp>
 
-namespace perimeter {
+namespace perimeter_rvb {
     class shift_region_class {
     public:
         shift_region_class(std::string filename): grow_level_(2) {
@@ -39,7 +39,8 @@ namespace perimeter {
                             stage1_.push_back(std::vector<std::string>());
                     }
                 };
-                stage1_.pop_back();
+                if(stage1_.size() == 0)
+                    stage1_.pop_back();
                 H_ = stage1_[0].size();
                 L_ = consistent;
                 N_ = stage1_.size();
@@ -265,6 +266,6 @@ namespace perimeter {
         std::vector<bond_type> grow_dir_;
         unsigned grow_level_;
     };
-}//end namespace perimeter
+}//end namespace perimeter_rvb
 
 #endif //__SWAP_REGION_CLASS_HEADER

@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[]) {
     
-    perimeter::grid_class g(6, 6, std::vector<unsigned>(perimeter::qmc::n_bra, 2));
+    perimeter_rvb::grid_class g(6, 6, std::vector<unsigned>(perimeter_rvb::qmc::n_bra, 2));
     
     g.print_all();
     g.print_all({0});

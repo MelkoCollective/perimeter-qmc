@@ -7,7 +7,7 @@
 #include <sim_class.hpp>
 
 using namespace std;
-using namespace perimeter;
+using namespace perimeter_rvb;
 
 int main(int argc, char* argv[])
 {
