@@ -12,9 +12,29 @@
 #include <site_struct.hpp>
 
 namespace perimeter_rvb {
+    ///  \brief just reads a shift file and behaves like a matrix
     class shift_region_class {
     public:
-        shift_region_class(std::string filename): grow_level_(2) {
+        ///  \brief only constructor
+        ///  
+        ///  @param filename is the input-file
+        ///  
+        ///  the format of the input file must follow this rules:
+        ///  
+        ///  (first the preswap, one and only one spaces between numbers are mandatory)
+        ///  
+        ///  0 0 
+        ///  
+        ///  0 0 
+        ///  
+        ///  (not even a space in this empty line!)
+        ///  
+        ///  1 0
+        ///  
+        ///  1 0
+        ///  
+        ///  (again no space in this empty line!)
+        shift_region_class(std::string filename) {
             std::ifstream in(filename);
             std::string temp;
             if(in.is_open()) {
@@ -52,21 +72,12 @@ namespace perimeter_rvb {
             }
             convert_1_to_2();
         }
-        shift_region_class(unsigned const & H, unsigned const & L, double const & spacing): H_(H), L_(L), N_(2), grow_level_(2) {
-            stage2_ = std::vector<std::vector<std::vector<unsigned>>>(N_, std::vector<std::vector<unsigned>>(H_, std::vector<unsigned>(L_, 0)));
-            set_grow(std::vector<bond_type>(1, qmc::right));
-            
-            unsigned grow_count = 0;
-            for(unsigned j = 0; j < 2; ++j) {
-                for(unsigned i = 0; i < H_; ++i) {
-                    stage2_[1][i][j] = 1;
-                    if(std::round((2.0 - spacing) * H_) > grow_count++)
-                        stage2_[0][i][j] = 1;
-                }
-            }
-            convert_2_to_1();
-        }
-        
+        ///  \brief prints the content
+        ///  
+        ///  @param flags determine what is printed
+        ///  
+        ///  if the flag contains 1 (first bit set) it will print the exact thing it read from the file.
+        ///  If the flag contains 2 (second bit set) it will print what it parsed and what the matrix looks like
         void print(unsigned flags = 1) const {
             if((flags&1) == 1) {
                 std::cout << "--------stage1-graphical--------" << std::endl;
@@ -91,143 +102,12 @@ namespace perimeter_rvb {
                 }
             }
         }
+        ///  \brief return matrix-elements with this operator
         unsigned operator()(unsigned const & n, unsigned const & i, unsigned const & j) const {
             return stage2_[n][i][j];
         }
-        bool operator()(unsigned const & i, unsigned const & j) const { //backwards compatible
-            assert(N_ == 1);
-            return bool(stage2_[0][i][j]);
-        }
-        void set_grow(std::vector<bond_type> const & grow_dir) {
-            grow_dir_ = grow_dir;
-        }
-        void invert() {
-            if(N_ != 1)
-                return;
-            for(unsigned i = 0; i < H_; ++i)
-                for(unsigned j = 0; j < L_; ++j)
-                    stage2_[0][i][j] = !stage2_[0][i][j];
-        }
-        
-        unsigned & get_neighbor(unsigned const & level, unsigned const & i, unsigned const & j, unsigned const & dir) {
-            switch(dir) {
-                case(qmc::down):
-                    return stage2_[level][(i + 1) % H_][j];
-                    break;
-                case(qmc::right):
-                    return stage2_[level][i][(j + 1) % L_];
-                    break;
-                case(qmc::diag_down):
-                    return stage2_[level][(i + 1) % H_][(j + 1) % L_];
-                    break;
-                case(qmc::diag_up):
-                    return stage2_[level][(i + H_ - 1) % H_][(j + L_ - 1) % L_];
-                    break;
-                case(qmc::left):
-                    return stage2_[level][i][(j + L_ - 1) % L_];
-                    break;
-                case(qmc::up):
-                    return stage2_[level][(i + H_ - 1) % H_][j];
-                    break;
-                case(qmc::hori):
-                    if((i+j) % 2 == 1)
-                        return stage2_[level][i][(j + L_ - 1) % L_];
-                    else
-                        return stage2_[level][i][(j + 1) % L_];
-                default:
-                    throw std::runtime_error("false direction given in shift_region_class::get_neighbor");
-            }
-        }
-        
-        void grow_partial(double steps_in = 1) {
-            steps_in -= 2;
-            unsigned steps = std::abs(steps_in) + 1;
-            unsigned grow_count = 0;
-            unsigned max_grow = std::round(std::abs(steps_in) * H_);
-            const unsigned just_grown = 1000;
-            grow_level_ += steps;
-            for(unsigned level = 0; level < N_; ++level) {
-                grow_count = 0;
-                for(unsigned k = 0; k < steps; ++k) {
-                    for(unsigned j = 0; j < L_; ++j) {
-                        for(unsigned i = 0; i < H_; ++i) {
-                            unsigned i_eff = steps_in < 0 ? H_ - i - 1: i;
-                            unsigned j_eff = steps_in < 0 ? L_ - j - 1: j;
-                            unsigned grow_factor = stage2_[level][i_eff][j_eff];
-                            if(grow_factor > 0 and grow_factor < just_grown) {
-                                std::for_each(grow_dir_.begin(), grow_dir_.end(), 
-                                    [&](unsigned const & dir) {
-                                        if(get_neighbor(level, i_eff, j_eff, dir) == 0){
-                                            if(grow_count++ < max_grow) {
-                                                if(steps_in < 0)
-                                                    stage2_[level][i_eff][j_eff] = just_grown;
-                                                else
-                                                    get_neighbor(level, i_eff, j_eff, dir) = grow_factor + just_grown;
-                                            }
-                                        }
-                                    }
-                                );
-                            }
-                        }
-                    }
-                    for(unsigned i = 0; i < H_; ++i) {
-                        for(unsigned j = 0; j < L_; ++j) {
-                            if(stage2_[level][i][j] >= just_grown)
-                                stage2_[level][i][j] -= just_grown;
-                        }
-                    }
-                }
-            }
-        }
-        
-        void grow(int steps_in = 1) {
-            steps_in -= 2;//TODO: remove later
-            const unsigned just_grown = 1000;
-            unsigned steps = std::abs(steps_in);
-            grow_level_ += steps;
-            for(unsigned level = 0; level < N_; ++level) {
-                for(unsigned k = 0; k < steps; ++k) {
-                    for(unsigned i = 0; i < H_; ++i) {
-                        for(unsigned j = 0; j < L_; ++j) {
-                            unsigned grow_factor = stage2_[level][i][j];
-                            if(grow_factor > 0 and grow_factor < just_grown) {
-                                std::for_each(grow_dir_.begin(), grow_dir_.end(), 
-                                    [&](unsigned const & dir) {
-                                        if(get_neighbor(level, i, j, dir) == 0){
-                                            if(steps_in < 0)
-                                                stage2_[level][i][j] = just_grown;
-                                            else
-                                                get_neighbor(level, i, j, dir) = grow_factor + just_grown;
-                                        }
-                                    }
-                                );
-                            }
-                        }
-                    }
-                    for(unsigned i = 0; i < H_; ++i) {
-                        for(unsigned j = 0; j < L_; ++j) {
-                            if(stage2_[level][i][j] >= just_grown)
-                                stage2_[level][i][j] -= just_grown;
-                        }
-                    }
-                }
-            }
-        }
-        
-        void write(std::string filename) {
-            convert_2_to_1();
-            
-            std::ofstream os(filename);
-            for(unsigned n = 0; n < N_; ++n) {
-                for(unsigned i = 0; i < H_; ++i) {
-                    os << stage1_[n][i] << std::endl;
-                }
-                if(n != N_ - 1)
-                    os << std::endl;
-            }
-            os.close();
-        }
     private:
+        ///  \brief parses the input into a matrix of numbers
         void convert_1_to_2() {
             stage2_ = std::vector<std::vector<std::vector<unsigned>>>(N_, std::vector<std::vector<unsigned>>(H_, std::vector<unsigned>(L_, 0)));
             for(unsigned n = 0; n < N_; ++n) {
@@ -238,17 +118,7 @@ namespace perimeter_rvb {
                 }
             }
         }
-        void convert_2_to_1() {
-            stage1_ =  std::vector<std::vector<std::string>>(N_, std::vector<std::string>(H_, ""));
-            for(unsigned n = 0; n < N_; ++n) {
-                for(unsigned i = 0; i < H_; ++i) {
-                    for(unsigned j = 0; j < L_; ++j) {
-                        stage1_[n][i] += '0' + (*this)(n, i, j);
-                        stage1_[n][i] += " ";
-                    }
-                }
-            }
-        }
+        ///  \brief just makes sure that each line contains the same amount of sites (chars between '0'-'9')
         unsigned count_sites(std::string const & in) const {
             unsigned res(0);
             for(unsigned i = 0; i < in.size(); ++i) {
@@ -258,13 +128,11 @@ namespace perimeter_rvb {
             return res;
         }
     private:
-        unsigned H_;
-        unsigned L_;
-        unsigned N_;
-        std::vector<std::vector<std::string>> stage1_;
-        std::vector<std::vector<std::vector<unsigned>>> stage2_;
-        std::vector<bond_type> grow_dir_;
-        unsigned grow_level_;
+        unsigned H_;    ///< height
+        unsigned L_;    ///< length
+        unsigned N_;    ///< number of shift regions (preswap/swap)
+        std::vector<std::vector<std::string>> stage1_;  ///< the information that came from the file
+        std::vector<std::vector<std::vector<unsigned>>> stage2_; ///< the parsed matrix
     };
 }//end namespace perimeter_rvb
 

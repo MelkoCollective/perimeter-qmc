@@ -17,11 +17,7 @@ int main(int argc, char* argv[])
 {
     //~ addon::global_seed.set(0);
     auto & p = addon::parameter;
-    p["init0"] = 2;
-    p["init1"] = 2;
-    p["f"] = 1;
-    p["g"] = 0;
-
+    
     p["mult"] = 1;
 
     p["H"] = 6;
@@ -29,6 +25,7 @@ int main(int argc, char* argv[])
     p["shift"] = "shift.txt";
     p["spaceing"] = 1;
     p["res"] = "results.txt";
+    p["vis"] = "simuvis.txt";
     p["timer_dest"] = 0;
 
     p.read(argc, argv);
@@ -39,6 +36,7 @@ int main(int argc, char* argv[])
     std::string prog_dir = p["prog_dir"];
     p["shift"] = prog_dir + std::string(p["shift"]);
     p["res"] = prog_dir + std::string(p["res"]);
+    p["vis"] = prog_dir + std::string(p["vis"]);
     
     sim_class sim(p.get());
     

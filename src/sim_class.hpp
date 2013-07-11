@@ -172,6 +172,12 @@ namespace perimeter_rvb {
             //=================== back to preswap ===================
             grid_.set_shift_mode(qmc::ket_preswap);
         }
+        ///  \brief writes the the bins into the mean_file
+        ///  
+        ///  @param bins is a vector with values that need to go into the mean_file
+        ///  @param mean_file is the file where the values are appended to
+        ///  
+        ///  since writing files is slow, we want to collect some values before writing. That why there's a vector
         void write_bins(std::vector<double> & bins, std::string const & mean_file) {
             std::ofstream ofs;
             ofs.open(mean_file, std::ios::app);
@@ -183,11 +189,15 @@ namespace perimeter_rvb {
             ofs.close();
             bins.clear();
         }
+        ///  \brief core of the simulation
+        ///  
+        ///  see in code comments for detailed explanation
         void run() {
             //------------------- init state -------------------
             grid_.set_shift_mode(qmc::ket_preswap);
             //------------------- init timer -------------------
             addon::timer_class<addon::data> timer(param_["term"] + param_["sim"], param_["res"]);
+            //set the labels for the later write
             timer.set_names("seed"
                           , "H"
                           , "sign"
@@ -198,26 +208,28 @@ namespace perimeter_rvb {
                           , "loop_time[us]"
                           , "entropy"
                           , "error"
-                          );
-            timer.set_comment("measurement");
+                          ); //can take maximally 10 arguments
+            timer.set_comment("measurement"); //optional, only shows in print not write
             
+            //where the mean bins are
             std::string mean_file = (std::string)param_["prog_dir"] + "/mean.txt";
             
             std::vector<double> bins;
             
+            //if -fix is found in the bash arguments it will just recalculate the jackknife
             if(param_.find("fix") == param_.end()) {
-                
+                //if -del is found in the bash arguments all progress/mean files will be deleted
                 if(param_.find("del") != param_.end()) {
                     addon::immortal.reset();
                     remove(mean_file.c_str());
                     remove((std::string(param_["prog_dir"]) + "/state.txt").c_str()); //timer...
                 }
-                if(addon::immortal.available()) {
+                if(addon::immortal.available()) { //else if there are progress files around they get loaded
                     std::cout << GREENB << "load data at index " << addon::immortal.get_index() << NONE << std::endl;
                     addon::immortal >> (*this);
                 }
-                else {
-                    //------------------- term -------------------
+                else {//otherwise the thermalization begins normally
+                    //------------------- therm -------------------
                     std::cout << std::endl;
                     for(unsigned i = 0; i < param_["term"]; ++i) {
                         update();
@@ -232,12 +244,12 @@ namespace perimeter_rvb {
                     measure();
                     timer.progress(param_["term"] + i, param_["timer_dest"]);
                     
-                    if((i & ((1lu<<10) - 1)) == ((1lu<<10) - 1)) {
+                    if((i & ((1lu<<10) - 1)) == ((1lu<<10) - 1)) { //all 1024 one mean gets added to the bins vector
                         
                         bins.push_back(data_["mean_for_error"].mean());
                         data_["mean_for_error"] = accumulator_double();
                         
-                        if((i & ((1lu<<14) - 1)) == ((1lu<<14) - 1)) {
+                        if((i & ((1lu<<14) - 1)) == ((1lu<<14) - 1)) { //all 16*1024 the progress is saved and the bins written
                             //------------------- write out bins -------------------
                             write_bins(bins, mean_file);
                             //------------------- serialize config -------------------
@@ -251,7 +263,7 @@ namespace perimeter_rvb {
             }
             
             
-            auto jack = jackknife(mean_file);
+            auto jack = jackknife(mean_file); //calc jackknife from mean_file
             
             timer.write(addon::global_seed.get()
                         , H_
@@ -263,9 +275,9 @@ namespace perimeter_rvb {
                         , timer.loop_time()
                         , jack.first
                         , jack.second
-                        );
+                        ); //can take maximally 10 arguments
         }
-        
+        ///  \brief just printing the data in the accumulators
         void present_data() {
             std::for_each(data_.begin(), data_.end(), 
                 [&](std::pair<std::string const, accumulator_double> & p) {
@@ -275,17 +287,25 @@ namespace perimeter_rvb {
             std::cout << "S2 = " << -std::log(data_["swap_overlap"].mean()) << std::endl;
             std::cout << "accept " << int(accept_.mean() * 100) << "%" << std::endl;
         }
-        
+        ///  \brief small helper for simuviz_frame
         int simuviz_get_bond(site_type const & s, bond_type const & dir, bool const & spin_up) {
-            bond_type bra = s.bond[0];
-            bond_type ket = s.bond[qmc::invert_state - 0];
+            bond_type bra_bond = s.bond[0];
+            bond_type ket_bond = s.bond[qmc::invert_state - 0];
             
-            if(bra == dir or ket == dir)
-                return spin_up;
+            if(bra_bond == dir or ket_bond == dir)
+                return spin_up; //1==color during bond_updates / 0==color during spin_update
             else
-                return 2;
+                return 2; //2==invisible
         }
+        ///  \brief writes a frame for a simuviz visualization
+        ///  
+        ///  @param spin_up says if the frame is taken during a spin_update or bond_update
+        ///  
+        ///  Frames are only taken, if the #define SIMUVIZ_FRAMES 50 is defined before including this header.
+        ///  SIMUVIZ_FRAMES specifies how many frames are recorded. One needs to change the hex/sqr/tri_info.txt file
+        ///  and adapt the size and the amount of frame (first two lines). The destination is whatever param_["vis"] returns
         void simuviz_frame(bool const & spin_up = false) {
+            
             static int frame = 0;
             ++frame;
             if(frame > 50)
@@ -293,7 +313,7 @@ namespace perimeter_rvb {
             DEBUG_VAR(frame)
             
             std::ofstream ofs;
-            ofs.open(std::string(param_["prog_dir"]) + "/../../../SimuViz/Example/viz.txt", std::ios::app);
+            ofs.open(std::string(param_["vis"]), std::ios::app);
             
             ofs << std::endl << std::endl;
             
@@ -332,10 +352,13 @@ namespace perimeter_rvb {
             
             ofs.close();
         }
-        
+        ///  \brief just returns a reference to the grid
         grid_class & grid() {
             return grid_;
         }
+        ///  \brief for the checkpoints
+        ///  
+        ///  this function is used by the serializer to get and set this object
         template<typename Archive>
         void serialize(Archive & ar) {
             ar & rngS_;
@@ -346,16 +369,16 @@ namespace perimeter_rvb {
             ar & data_;
         }
     private:
-        map_type param_;
-        const unsigned H_;
-        const unsigned L_;
-        grid_class grid_;
-        addon::random_class<double, addon::mersenne> rngS_;
-        addon::random_class<int, addon::mersenne> rngH_;
-        addon::random_class<int, addon::mersenne> rngL_;
+        map_type param_;    ///< the parameter with all the settings
+        const unsigned H_;  ///< height
+        const unsigned L_;  ///< length
+        grid_class grid_;   ///< the actual grid
+        addon::random_class<double, addon::mersenne> rngS_; ///< spin/tile-random source
+        addon::random_class<int, addon::mersenne> rngH_;    ///< H-random source
+        addon::random_class<int, addon::mersenne> rngL_;    ///< L-random source
         
-        std::map<std::string, accumulator_double> data_;
-        accumulator_simple accept_;
+        std::map<std::string, accumulator_double> data_;    ///< all measurements are stored in here
+        accumulator_simple accept_; ///< measures the update acceptance for bond_updates
     };
 }
 #endif //__SIM_CLASS_HEADER

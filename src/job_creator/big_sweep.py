@@ -1,4 +1,3 @@
-
 parameter["shift"] = "shift1.txt"
 #inputfile for generating the shift files
 #~ gl = lambda x: range(0, shift.max_steps(x, x)+1)
