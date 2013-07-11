@@ -5,17 +5,17 @@
 #ifndef __SITE_STRUCT_HEADER
 #define __SITE_STRUCT_HEADER
 
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <vector>
-#include <bitset>
-#include <assert.h>
-
-#include <boost/integer.hpp>
+#include <tile_struct.hpp>
 #include <addons/color.hpp>
 
-#include <tile_struct.hpp>
+#include <boost/integer.hpp>
+
+#include <bitset>
+#include <vector>
+#include <iomanip>
+#include <sstream>
+#include <assert.h>
+#include <iostream>
 
 //perimeter is documented in grid_class.hpp
 namespace perimeter_rvb {

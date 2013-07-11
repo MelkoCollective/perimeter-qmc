@@ -5,9 +5,9 @@
 #ifndef __SWAP_REGION_CLASS_HEADER
 #define __SWAP_REGION_CLASS_HEADER
 
-#include <iostream>
-#include <fstream>
 #include <string>
+#include <fstream>
+#include <iostream>
 
 #include <site_struct.hpp>
 

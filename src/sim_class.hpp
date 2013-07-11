@@ -5,30 +5,36 @@
 #ifndef __SIM_CLASS_HEADER
 #define __SIM_CLASS_HEADER
 
+#include <jackknife.hpp>
 #include <grid_class.hpp>
 #include <shift_region_class.hpp>
-#include <jackknife.hpp>
 
-#include <random2_msk.hpp>
 #include <timer2_msk.hpp>
-#include <immortal_msk.hpp>
-#include <bash_parameter3_msk.hpp>
+#include <random2_msk.hpp>
 #include <accum_double.hpp>
 #include <accum_simple.hpp>
+#include <immortal_msk.hpp>
+#include <bash_parameter3_msk.hpp>
 
 #include <map>
-#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <assert.h>
-#include <cmath>
+#include <algorithm>
 
 //perimeter is documented in grid_class.hpp
 namespace perimeter_rvb {
+    ///  \brief holds update/measurement/checkpointsystem/rng in one place
     class sim_class {
-        typedef typename grid_class::index_type index_type;
-        typedef typename grid_class::site_type site_type;
-        typedef addon::bash_parameter_class::map_type map_type;
+        typedef typename grid_class::index_type index_type; ///< just forwarding from grid
+        typedef typename grid_class::site_type site_type; ///< just forwarding from grid
+        typedef addon::bash_parameter_class::map_type map_type; ///< just forwarding from bash_parameter
     public:
+        ///  \brief the only constructor
+        ///  
+        ///  @param param is a map that contains the bash parameters
+        ///  
+        ///  param is used to specify all modifiable behavior of the simulation during runtime
         sim_class(map_type const & param):    param_(param)
                                             , H_(param_["H"])
                                             , L_(param_["L"])
@@ -39,12 +45,9 @@ namespace perimeter_rvb {
                                             {
                                                 
             shift_region_class sr_(param_["shift"]);
-            //~ sr_.set_grow(std::vector<bond_type>(1, qmc::right));
-            //~ shift_region_class sr_(H_, L_, param_["spacing"]);
-            //~ sr_.grow_partial(param_["g"]);
-            //~ sr_.write(param_["shift"]);
             grid_.set_shift_region(sr_);
             
+            //uncomment for negative "vortex" init in the triangular case (fails for sqr and hex)
             //~ state_type state = 0;
             //~ if(qmc::n_bonds == qmc::tri) {
                 //~ for(unsigned i = 0; i < H_; i += 4) {
@@ -71,21 +74,30 @@ namespace perimeter_rvb {
             grid_.clear_tile_spin();
             grid_.copy_to_ket();
         }
-        
-        bool two_bond_update(index_type i, index_type j, state_type state, int t = -1) {
+        ///  \brief just forwards the two bond update to the grid with a random tile (tri only)
+        bool two_bond_update(index_type i, index_type j, state_type state) {
             if(qmc::n_bonds == qmc::tri)
-                if(t == -1)
-                    return grid_.two_bond_update_intern(i, j, state, int(rngS_() * 3));
-                else
-                    return grid_.two_bond_update_intern(i, j, state, t);
+                return grid_.two_bond_update_intern(i, j, state, int(rngS_() * 3));
             else
                 return grid_.two_bond_update_intern(i, j, state, 0);
         }
-        
+        ///  \brief just forwards the two bond update to the grid
+        ///  
+        ///  @param t specifies the tile. With this version one can manually update tiles (tri only)
+        ///  
+        ///  Two two_bond_update fcts are better bc there would be an if if we did only one version with a default for t
+        bool two_bond_update(index_type i, index_type j, state_type state, int t) {
+            if(qmc::n_bonds == qmc::tri)
+                return grid_.two_bond_update_intern(i, j, state, t);
+            else
+                return grid_.two_bond_update_intern(i, j, state, 0);
+        }
+        ///  \brief changes the spin of the loops
+        ///  
+        ///  Decides at random (50:50) for every loop if all spins in the loop should be flipped or not
         void spin_update() {
-            
             grid_.init_loops();
-            //~ DEBUG_MSG("start spin")
+            
             for(state_type bra = qmc::start_state; bra < qmc::n_bra; ++bra) {
                 grid_.alternator_ = bra;
                 std::for_each(grid_.begin(), grid_.end(), 
@@ -100,15 +112,12 @@ namespace perimeter_rvb {
                                 );
                             }
                             else {
-                                //~ std::cout << "follow change loop: " << s.loop[bra] << "   >";
                                 grid_.follow_loop_tpl(&s, bra, 
                                     [&](site_type * next) {
                                         next->check[bra] = true;
-                                        //~ std::cout << "."; std::cout.flush();
                                         next->spin[bra] = qmc::invert_spin - next->spin[bra];
                                     }
                                 );
-                                //~ std::cout << "done" << std::endl;
                                 #ifdef SIMUVIZ_FRAMES
                                     simuviz_frame(1);
                                 #endif //SIMUVIZ_FRAMES
@@ -119,11 +128,11 @@ namespace perimeter_rvb {
             }
             grid_.clear_check();
         }
-        
+        ///  \brief updates bonds and spins
+        ///  
+        ///  does H*L update atempts on random tiles for each state followed by a spin_update
         void update() {
             grid_.set_shift_mode(qmc::no_shift);
-            
-            grid_.clear_tile_spin();
             
             for(state_type state = qmc::start_state; state < qmc::n_states; ++state)
                 for(unsigned i = 0; i < H_ * L_; ++i) {
@@ -137,33 +146,30 @@ namespace perimeter_rvb {
             
             grid_.set_shift_mode(qmc::ket_preswap);
             spin_update();
-            grid_.copy_to_ket();
+            grid_.copy_to_ket(); //bc spins have changed
+            grid_.clear_tile_spin(); //bc spins have changed
         }
-        
+        ///  \brief measures wanted properties
+        ///  
+        ///  just add your own data_["your_tag"] << your_value; to measure something
         void measure() {
-            //~ int sign = grid_.sign();
+            //=================== preswap zone ===================
             double loops = grid_.n_loops();
-            //~ double neg_loops = grid_.n_neg_loops();
+            
             data_["loops"] << loops;
             data_["overlap"] << pow(2.0, loops - 2*H_*L_* .5 );
+            //=================== swap zone ===================
             grid_.set_shift_mode(qmc::ket_swap);
             grid_.init_loops();
+            //grid_.eco_init_loops(); one could do a more efficient init_loop
             
-            //~ if(sign != grid_.sign() and grid_.n_loops() > 12) {
-                //~ std::cout << "\033[1;36m" << "---checkpoint 2---" << "\033[0m" << std::endl;
-                //~ grid_.print_all({0, 1}, 7);
-                //~ DEBUG_VAR(sign)
-                //~ DEBUG_VAR(grid_.sign())
-                //~ std::cin.get();
-            //~ }
-            
-            //~ grid_.eco_init_loops();
             data_["sign"] << (grid_.sign() == 1);
-            data_["neg_loops"] << grid_.n_neg_loops()/(double)grid_.n_loops();
+            data_["neg_loops"] << grid_.n_neg_loops() / (double)grid_.n_loops();
             data_["swap_loops"] << grid_.n_loops();
             data_["swap_overlap"] << pow(2.0, int(grid_.n_loops()) - loops);
             data_["mean_for_error"] << pow(2.0, int(grid_.n_loops()) - loops);
             
+            //=================== back to preswap ===================
             grid_.set_shift_mode(qmc::ket_preswap);
         }
         void write_bins(std::vector<double> & bins, std::string const & mean_file) {
@@ -188,13 +194,12 @@ namespace perimeter_rvb {
                           , "sim"
                           , "x"
                           , "preswap_entropy"
-                          //~ , "accept"
                           , "neg_loops"
                           , "loop_time[us]"
                           , "entropy"
                           , "error"
                           );
-            timer.set_comment("test");
+            timer.set_comment("measurement");
             
             std::string mean_file = (std::string)param_["prog_dir"] + "/mean.txt";
             
@@ -254,7 +259,6 @@ namespace perimeter_rvb {
                         , param_["sim"]
                         , param_["g"]
                         , -std::log(data_["swap_overlap"].mean())
-                        //~ , accept_.mean()
                         , data_["neg_loops"].mean()
                         , timer.loop_time()
                         , jack.first
@@ -272,7 +276,7 @@ namespace perimeter_rvb {
             std::cout << "accept " << int(accept_.mean() * 100) << "%" << std::endl;
         }
         
-        int get_bond(site_type const & s, bond_type const & dir, bool const & spin_up) {
+        int simuviz_get_bond(site_type const & s, bond_type const & dir, bool const & spin_up) {
             bond_type bra = s.bond[0];
             bond_type ket = s.bond[qmc::invert_state - 0];
             
@@ -297,9 +301,9 @@ namespace perimeter_rvb {
                 for(unsigned i = 0; i < H_; ++i) {
                     for(unsigned j = 0; j < L_; ++j) {
                         ofs << grid_(i, j).spin[0] << " ";
-                        ofs << get_bond(grid_(i, j), qmc::up, spin_up) << " ";
-                        ofs << get_bond(grid_(i, j), qmc::diag_up, spin_up) << " ";
-                        ofs << get_bond(grid_(i, j), qmc::right, spin_up) << "  ";
+                        ofs << simuviz_get_bond(grid_(i, j), qmc::up, spin_up) << " ";
+                        ofs << simuviz_get_bond(grid_(i, j), qmc::diag_up, spin_up) << " ";
+                        ofs << simuviz_get_bond(grid_(i, j), qmc::right, spin_up) << "  ";
                     }
                     ofs << std::endl;
                 }
@@ -308,18 +312,18 @@ namespace perimeter_rvb {
                     for(unsigned j = 0; j < L_; j+=2) {
                         if(i % 2 == 0) {
                             ofs << grid_(i, j).spin[0] << " 2 2 " 
-                               << get_bond(grid_(i, j), qmc::up, spin_up) << " 2 2 2 2  " 
+                               << simuviz_get_bond(grid_(i, j), qmc::up, spin_up) << " 2 2 2 2  " 
                                << grid_(i, j+1).spin[0] << " 2 " 
-                               << get_bond(grid_(i, j+1), qmc::up, spin_up) << " 2 " 
-                               << get_bond(grid_(i, j+1), qmc::hori, spin_up) << " 2 2 2  2 2 2 2 2 2 2 2  ";
+                               << simuviz_get_bond(grid_(i, j+1), qmc::up, spin_up) << " 2 " 
+                               << simuviz_get_bond(grid_(i, j+1), qmc::hori, spin_up) << " 2 2 2  2 2 2 2 2 2 2 2  ";
                         }
                         else {
                             ofs << "2 " 
                                << grid_(i, j).spin[0] << " 2 2 2 " 
-                               << get_bond(grid_(i, j), qmc::up, spin_up) << " 2 " 
-                               << get_bond(grid_(i, j), qmc::hori, spin_up) << "  2 2 2 2 2 2 2 2  2 " 
+                               << simuviz_get_bond(grid_(i, j), qmc::up, spin_up) << " 2 " 
+                               << simuviz_get_bond(grid_(i, j), qmc::hori, spin_up) << "  2 2 2 2 2 2 2 2  2 " 
                                << grid_(i, j+1).spin[0] << " 2 2 2 2 " 
-                               << get_bond(grid_(i, j+1), qmc::up, spin_up) << " 2  ";
+                               << simuviz_get_bond(grid_(i, j+1), qmc::up, spin_up) << " 2  ";
                         }
                     }
                     ofs << std::endl;
@@ -341,7 +345,7 @@ namespace perimeter_rvb {
             ar & grid_;
             ar & data_;
         }
-    //~ private:
+    private:
         map_type param_;
         const unsigned H_;
         const unsigned L_;

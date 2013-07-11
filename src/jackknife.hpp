@@ -5,9 +5,10 @@
 #ifndef __JACKKNIFE_HEADER
 #define __JACKKNIFE_HEADER
 
-#include <fstream>
-#include <algorithm>
 #include <vector>
+#include <fstream>
+#include <assert.h>
+#include <algorithm>
 
 namespace perimeter_rvb {
     std::pair<double, double> jackknife(std::string name) {
