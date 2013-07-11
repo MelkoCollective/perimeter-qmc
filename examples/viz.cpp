@@ -40,8 +40,6 @@ int main(int argc, char* argv[])
     
     sim_class sim(p.get());
     
-    remove((prog_dir + "/../../../SimuViz/Example/viz.txt").c_str());
-    
     for(unsigned i = 0; i < 100; ++i) {
         sim.update();
     }
