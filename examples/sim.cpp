@@ -17,8 +17,8 @@ int main(int argc, char* argv[])
     
     p["mult"] = 1;
 
-    p["H"] = 16;
-    p["L"] = 16;
+    p["H"] = 4;
+    p["L"] = 4;
     p["shift"] = "shift.txt";
     p["res"] = "results.txt";
     p["timer_dest"] = 1;
@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
     
     p["term"] = p["mult"] * 100000;
     p["sim"] = p["mult"] * 1000000;
-    p["H"] = p["L"];
+    //~ p["H"] = p["L"];
     
     std::string prog_dir = p["prog_dir"];
     
@@ -35,6 +35,8 @@ int main(int argc, char* argv[])
     
     p["shift"] = prog_dir + std::string(p["shift"]);
     p["res"] = prog_dir + std::string(p["res"]);
+    
+    std::cout << p["shift"] << std::endl;
     
     addon::immortal.set_path(p["prog_dir"]);
     

@@ -223,14 +223,25 @@ def write_bash_file(path_dir):
     ofs.write("\n")
     ofs.close()
     
+    def find_index(key):
+        m = parameter["args"]
+        for element in m:
+            if is_list(element):
+                if key in element:
+                    return m.index(element)
+            else:
+                if key == element:
+                    return m.index(element)
+                
+        return len(m)
     
     path_dir + "/shift.txt"
     shift.read_base_file(parameter["shift"])
-    shift.max_steps(idx_list[0], idx_list[0])
+    shift.max_steps(idx_list[find_index("H")], idx_list[find_index("L")])
     #~ shift.multiply(idx_list[0]/shift.H, idx_list[0]/shift.L)
-    shift.grow(idx_list[1])
+    shift.grow(idx_list[find_index("g")])
     
-    if idx_list[1] != 0:
+    if idx_list[find_index("g")] != 0:
         bash("cp temp.txt " + path_dir + "/shift.txt")
     else:
         shift.write_shift_reagion(path_dir + "/shift.txt")

@@ -200,7 +200,8 @@ namespace perimeter_rvb {
             //set the labels for the later write
             timer.set_names("seed"
                           , "H"
-                          , "sign"
+                          , "L"
+                          //~ , "sign"
                           , "sim"
                           , "x"
                           , "preswap_entropy"
@@ -267,7 +268,8 @@ namespace perimeter_rvb {
             
             timer.write(addon::global_seed.get()
                         , H_
-                        , data_["sign"].mean()
+                        , L_
+                        //~ , data_["sign"].mean()
                         , param_["sim"]
                         , param_["g"]
                         , -std::log(data_["swap_overlap"].mean())

@@ -37,6 +37,7 @@ namespace perimeter_rvb {
         shift_region_class(std::string filename) {
             std::ifstream in(filename);
             std::string temp;
+            
             if(in.is_open()) {
                 unsigned consistent(0);
                 
@@ -59,7 +60,7 @@ namespace perimeter_rvb {
                             stage1_.push_back(std::vector<std::string>());
                     }
                 };
-                if(stage1_.size() == 0)
+                if(stage1_.back().size() == 0)
                     stage1_.pop_back();
                 H_ = stage1_[0].size();
                 L_ = consistent;

@@ -145,7 +145,7 @@ def grow_step(mod = 1, maxcount = 10):
     global shift_region, H, L, old_i, old_j
     #~ directions = ["right", "left", "up", "down"]
     #~ directions = ["left", "right"]
-    directions = ["up"]
+    #~ directions = ["up"]
     directions = ["right"]
     
     add = 100;

@@ -235,11 +235,10 @@ def main():
         else:
             if p.contains("acc"):
                 text  = ""
-                text += "{0}: {1:.0f}\n".format("H", data[:,-2][2])
-                text += "{0}: {1:.0f}\n".format("L", data[:,-2][3])
-                text += "{0}: {1:.0f}%\n".format("Accept", 100*data[:,-2][7])
-                #~ text += "{0}: {1:.0f}\n".format("Seed", data[:,-2][labels.index("Seed")])
-                text += "{0}: {1:.0f}us".format("Update Time", data[:,-2][labels.index("Loop Time[us]")])
+                text += "{0}: {1:.0f}\n".format(labels[2], data[:,-2][2])
+                text += "{0}: {1:.0f}\n".format(labels[3], data[:,-2][3])
+                text += "{0}: {1:.0f}%\n".format(labels[7], 100*data[:,-2][7])
+                text += "{0}: {1:.0f}".format(labels[0], data[:,-2][0])
                 ax.text(0.37
                       , 0.22
                       , text
