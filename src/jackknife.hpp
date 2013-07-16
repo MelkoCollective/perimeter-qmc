@@ -9,6 +9,8 @@
 #include <fstream>
 #include <assert.h>
 #include <algorithm>
+#include <numeric>
+#include <cmath>
 
 namespace perimeter_rvb {
     std::pair<double, double> jackknife(std::string name) {
